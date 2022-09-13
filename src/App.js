@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import axios from 'axios';
 import { Grommet, Box } from 'grommet';
+import { ToastContainer } from 'react-toastify';
+import { useQuery } from 'react-query';
 import { Header, Footer, FileUpload, CollapsibleList } from './components';
 import { customTheme } from './theme';
+import { fetchExpenditures } from './apis/expenditures';
 
 // add authorized javascript origins once you deploy the app to production
 // get clientID from environment variable
@@ -11,35 +11,19 @@ import { customTheme } from './theme';
 
 // TODO
 // 1. Logout button. Add a profile dropdown in the menu conditionally based on whether the user is logged in or not.
-// 2. Show popup when user logsout
-// 3. Show success/error message on file upload
-// 4. Use react-query?
-// 5. fetch csv files when user lands on the page
+// 2. Does google logout work? The prev token still validates
+// 3. After the user logs in, the google button still shows 'Sign in as abreeza'
 
 function App() {
-
-  const getExpenditures = async () => {
-    try {
-      const url = 'http://localhost:8080/fetch-csv';
-      const response = await axios.get(url, {
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('credential'),
-        },
-      });
-      console.log('response', response);
-      return response.data;
-    } catch (error) {
-      console.log('Error fetching expenditures', error);
-    }
-  };
-
-  useEffect(() => {
-    getExpenditures();
-    console.log('useEffect');
-  }, []);
+  const { data, isLoading, isError } = useQuery(
+    'expendituresFiles',
+    () => fetchExpenditures(),
+    { refetchOnWindowFocus: false, refetchOnMount: false }
+  );
 
   return (
-    <GoogleOAuthProvider clientId="1083413414522-bpk1bui746d1a470558mt8kkid90ukre.apps.googleusercontent.com">
+    <>
+      <ToastContainer />
       <Grommet theme={ customTheme }>
         <Header />
         <Box
@@ -51,11 +35,11 @@ function App() {
           gap="medium"
         >
           <FileUpload />
-          <CollapsibleList />
+          <CollapsibleList data={ data } />
         </Box>
         <Footer />
       </Grommet>
-    </GoogleOAuthProvider>
+    </>
   );
 }
 

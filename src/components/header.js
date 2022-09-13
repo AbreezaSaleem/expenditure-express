@@ -6,11 +6,13 @@ import { Menu as MenuIcon } from 'grommet-icons';
 const { Consumer } = ResponsiveContext;
 
 export const Header = () => {
+  const userLoggedIn = !!localStorage.getItem('credential');
+
   const onSuccess = async credentialResponse => {
-    console.log('success', credentialResponse);
     alert('User logged in successfully');
     const { credential } = credentialResponse;
     localStorage.setItem('credential', credential);
+    window.location.reload(true);
   };
 
   const onError = error => {  console.log(error); };
@@ -31,13 +33,13 @@ export const Header = () => {
             icon={<MenuIcon color="neutral-1" />}
             items={[
               {
-                label: <Box pad="small">Expenditures</Box>,
+                label: <Box pad="small">View Expenditures</Box>,
                 href: '#',
               },
-              {
-                label: <Box pad="small">Profile</Box>,
-                href: '#',
-              },
+              (userLoggedIn ? {
+                label: <Box pad="small">Logout</Box>,
+                onClick: handleLogout,
+              } : {}),
             ]}
           />
         </Box>
@@ -45,14 +47,14 @@ export const Header = () => {
     } else {
       return (
         <Box justify="end" direction="row" alignItems="center" gap="medium">
-          <Anchor alignSelf="center" color="neutral-1" href="#" label="Expenditures" />
-          <Menu
+          <Anchor alignSelf="center" color="neutral-1" href="#" label="View Expenditures" />
+          {userLoggedIn && <Menu
             label="Hey, Abreeza"
             alignItems="center"
             items={[
               { label: 'Logout', onClick: handleLogout },
             ]}
-          />
+          />}
         </Box>
       );
     }

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useQueryClient, useMutation } from 'react-query';
+import { toast } from 'react-toastify';
 import { Select, Box, Heading, Text, FileInput } from 'grommet';
+import { uploadExpenditureFile } from '../apis/expenditures';
 
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const years = ['2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];
@@ -8,23 +10,22 @@ const years = ['2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '
 export const FileUpload = () => {
   const [timePeriod, setTimePeriod] = useState({ month: null, year: null });
 
+  const queryClient = useQueryClient()
+  const uploadExpenditureFileMutation = useMutation(uploadExpenditureFile, {
+    onSuccess: () => {
+      toast('File successfully loaded!', {
+        type: 'success',
+        hideProgressBar: true,
+        autoClose: 2000,
+      });
+      queryClient.invalidateQueries(['expendituresFiles'])
+    },
+  });
+
   const updateMonth = (event) => setTimePeriod({ ...timePeriod, month: event.target.value });
   const updateYear = (event) => setTimePeriod({ ...timePeriod, year: event.target.value });
 
-  const uploadFileOnServer = async formData => {
-    try {
-      console.log('formdata parsed', formData.get('csvFile'))
-      const url = 'http://localhost:8080/parse-csv';
-      await axios.post(url, formData, {
-        headers: {
-          'Content-Type': 'text/csv',
-          'Authorization': 'Bearer ' + localStorage.getItem('credential'),
-        },
-      })
-    } catch (error) {
-      console.log('Error uploading file', error);
-    }
-  };
+  const uploadFileOnServer = formData => uploadExpenditureFileMutation.mutate(formData);
 
   const handleUploadFile = (event) => {
     const file = event.target.files[0];
@@ -33,7 +34,6 @@ export const FileUpload = () => {
     formData.append('csvFile', file);
     formData.append('email', 'ali.khilji94@gmail.com');
     formData.append('timePeriod', `${timePeriod.month}-${timePeriod.year}`);
-    console.log('data', formData)
     uploadFileOnServer(formData);
   }
 
