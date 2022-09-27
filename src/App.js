@@ -1,7 +1,8 @@
 import { Grommet, Box } from 'grommet';
 import { ToastContainer } from 'react-toastify';
 import { useQuery } from 'react-query';
-import { Header, Footer, FileUpload, CollapsibleList } from './components';
+import isempty from 'lodash.isempty';
+import { Header, Footer, FileUpload, ExpendituresList } from './components';
 import { customTheme } from './theme';
 import { fetchExpenditures } from './apis/expenditures';
 
@@ -17,8 +18,8 @@ import { fetchExpenditures } from './apis/expenditures';
 function App() {
   const { data, isLoading, isError } = useQuery(
     'expendituresFiles',
-    () => fetchExpenditures(),
-    { refetchOnWindowFocus: false, refetchOnMount: false }
+    fetchExpenditures,
+    { refetchOnWindowFocus: false, retry: false }
   );
 
   return (
@@ -32,10 +33,9 @@ function App() {
           align="center"
           pad="large"
           background="status-disabled"
-          gap="medium"
         >
           <FileUpload />
-          <CollapsibleList data={ data } />
+          {!isLoading && !isError && !isempty(data) && <ExpendituresList data={ data } />}
         </Box>
         <Footer />
       </Grommet>

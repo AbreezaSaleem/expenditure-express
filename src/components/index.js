@@ -1,4 +1,9 @@
+export { Analytics } from './analytics';
 export { Header } from './header';
 export { Footer } from './footer';
 export { FileUpload } from './file-upload';
-export { CollapsibleList } from './collapsible-list';
+export { SampleFile } from './sample-file';
+export { Popup } from './popup';
+export { Table } from './table';
+export { Chart } from './d3-chart';
+export { ExpendituresList } from './collapsible-list';

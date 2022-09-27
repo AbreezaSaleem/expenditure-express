@@ -5,7 +5,11 @@
   "dependencies": {
     "@react-oauth/google": "^0.2.6",
     "axios": "0.24.0",
+    "d3": "^7.6.1",
     "grommet": "^2.25.1",
+    "lodash.isempty": "^4.4.0",
+    "lodash.max": "^4.0.1",
+    "lodash.union": "^4.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-query": "^3.39.2",

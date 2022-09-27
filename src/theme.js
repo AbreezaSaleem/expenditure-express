@@ -1,4 +1,9 @@
 export const customTheme = {
+  global: {
+    font: {
+      family: 'Lato',
+    },
+  },
   fileInput: {
     border: {
       color: 'neutral-1',
