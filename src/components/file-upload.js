@@ -5,7 +5,7 @@ import { Select, Box, Button, Heading, Text, FileInput, TextInput } from 'gromme
 import { Popup, SampleFile } from '../components';
 import { uploadExpenditureFile } from '../apis/expenditures';
 
-const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const years = ['2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];
 
 export const FileUpload = () => {
