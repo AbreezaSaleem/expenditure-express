@@ -109,9 +109,9 @@ export const Analytics = () => {
   };
 
   const addYAxis = (svg, yRange, height, margin) => {
-    console.log('masx', d3.max(yRange), d3.min(yRange))
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(yRange)]).nice()
+    const y = d3.scaleLog()
+      .base(2)
+      .domain([1, d3.max(yRange)])
       .range([ height - margin.bottom, margin.top ]);
     svg.append("g")
       .attr("transform", "translate(30,0)")
@@ -125,21 +125,36 @@ export const Analytics = () => {
       .attr("font-weight", "bold")
       .attr("text-anchor", "start")
       .text("Expenditure");
+    console.log('domain', y.domain())
     return y;
   };
 
   const updateYAxisByMonth = (svg, y, yRange, height) => {
-    y.domain([0, d3.max(dataMonth, function(d) { return d3.max(yRange) })]).nice()
+    y.domain([1, d3.max(dataMonth, function(d) { return d3.max(yRange) })]).nice()
     .range([ height, 0 ]);
     svg.selectAll(".y-axis")
       .call(d3.axisLeft(y))
   }
 
   const updateYAxisByYear = (svg, y, yRange, height) => {
-    y.domain([0, d3.max(dataYear, function(d) { return d3.max(yRange) })]).nice()
+    y.domain([1, d3.max(dataYear, function(d) { return d3.max(yRange) })]).nice()
     .range([ height, 0 ]);
     svg.selectAll(".y-axis")
       .call(d3.axisLeft(y))
+  }
+
+  const addGridLines = (svg, y, width) => {
+    svg.append("g")
+      .attr("class", "grid")
+      .call(d3.axisLeft(y)
+        .tickSize(-width)
+        .tickFormat("")
+      )
+    svg.selectAll(".grid line, .grid path")
+      .attr("stroke", "#e0e0e0")
+      .attr("stroke-opacity", "0.5")
+      .attr("stroke-dasharray", "4 4")
+      .attr("stroke-width", "1px")
   }
 
   const addSecondaryXAxis = (x, xAxisDomainMonth, currentYear = 'nm') => {
@@ -161,7 +176,6 @@ export const Analytics = () => {
       .attr("class",(_, i) => `x-axis-2-${i}`)
       .each((_, i) => {
         const barGroup = d3.select(`.barGroup:nth-child(${i+1})`);
-        // console.log('group', barGroup.data())
         const group = barGroup.data()[0]?.group;
         const x2 = addSecondaryXAxis(x, xAxisDomainMonth, group);
         x2s.push(x2);
@@ -185,11 +199,10 @@ export const Analytics = () => {
     return xSubgroup;
   };
 
-  const defineColorPalette = () => {
+  const defineColorPalette = (svg) => {
     const color = d3.scaleOrdinal()
       .domain(subgroups)
       .range(['#e41a1c','#377eb8','#4daf4a', '#fa6d98', '#e2e14c', '#07b1bc']) // make colors dynamic
-      // .range(d3.schemeSet1) // make colors dynamic
     return color;
   };
 
@@ -207,7 +220,12 @@ export const Analytics = () => {
         .attr("class", "barGroup")
         .attr("transform", function(d) { return "translate(" + x(d.group) + ",0)"; })
       .selectAll("rect")
-      .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
+      // .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
+      .data(d =>
+        subgroups
+          .filter(subgroup => !!d[subgroup])
+          .map(subgroup => ({key: subgroup, value: d[subgroup]}))
+      )
       .enter().append("rect") // enter = new data array - selection array (previous data array)
         .attr("class", "bar")
         .attr("x", function(d) { return xSubgroup(d.key); })
@@ -218,8 +236,7 @@ export const Analytics = () => {
       svg.selectAll("rect")
         .transition() //assures the transition of the bars
         .duration(400) //the transition lasts 800 ms
-          .attr("y", d => y(d.value))
-          .attr("height", function(d) { return y(0) - y(d.value); })
+          .attr("height", function(d) { return y(1) - y(d.value); })
         .delay(300)
       // this gets called every time the data changes, it removes previous data you just added (and the ones before that)
       // ^ this ensures the selection array is empty for the next update
@@ -266,7 +283,7 @@ export const Analytics = () => {
               .transition() //assures the transition of the bars
               .duration(400) //the transition lasts 800 ms
                 .attr("y", d => y(d.value))
-                .attr("height", function(d) { return y(0) - y(d.value); })
+                .attr("height", function(d) { return y(1) - y(d.value); })
               .delay(300)
   };
 
@@ -394,19 +411,17 @@ export const Analytics = () => {
     // append the svg object to the body of the page
     const svg = createChartSvg(chartWidth, height, margin);
 
-    // add the x Axis
     const x = addXAxis(svg, xAxisDomainYear, chartWidth, height);
 
-    // Add Y axis
     const y = addYAxis(svg, yRange, height, margin);
+
+    addGridLines(svg, y, chartWidth);
 
     // Another axis for subgroup position
     const xSubgroup = addSubXAxis(x, subgroups);
 
-    // let x2 = addSecondaryXAxis(x, xAxisDomainMonth);
-
     // color palette = one color per subgroup
-    const color = defineColorPalette();
+    const color = defineColorPalette(svg);
 
     // Show the bars
     generateBarsYear(svg, x, y, height, color);
