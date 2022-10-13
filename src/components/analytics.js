@@ -426,8 +426,6 @@ export const Analytics = () => {
     // Show the bars
     generateBarsYear(svg, x, y, height, color);
 
-    // showSecondaryXAxis(svg, x, height);
-
     // Show data on hover
     showDataOnHover(svg);
 
