@@ -75,7 +75,7 @@ export const Analytics = () => {
     const height = 400 - margin.top - margin.bottom;
     const parentWidth = document.getElementById('chart-wrapper').offsetWidth;
     const chartWidth = width * .9;
-    const legendWidth = width * .095;
+    const legendWidth = width * .085;
     // console.log('width', parentWidth, width, chartWidth, legendWidth, chartWidth+legendWidth);
     return { height, parentWidth, chartWidth, legendWidth, margin };
   }
@@ -84,9 +84,10 @@ export const Analytics = () => {
     // append the svg object to the body of the page
     const svg = d3.select("#my_dataviz")
     .append("svg")
+      .attr("overflow", "visible")
       .attr("width", (width))
       .attr("height", height + margin.top + margin.bottom)
-      .style("border", "1px solid lightgrey")
+      // .style("border", "1px solid lightgrey")
     svg.append("g")
       .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
@@ -187,7 +188,7 @@ export const Analytics = () => {
           .tickFormat(d => d.split('-')[1])
         )
       )
-    // ticks.selectAll("text").attr("transform", "rotate(-65)");
+    ticks.selectAll("text").attr("transform", "translate(-10, 10), rotate(-65)");
     return x2s;
   };
 
@@ -202,7 +203,18 @@ export const Analytics = () => {
   const defineColorPalette = (svg) => {
     const color = d3.scaleOrdinal()
       .domain(subgroups)
-      .range(['#e41a1c','#377eb8','#4daf4a', '#fa6d98', '#e2e14c', '#07b1bc']) // make colors dynamic
+      .range([
+        '#864000',
+        '#D44000',
+        '#FF7A00',
+        '#FFEFCF',
+        '#583D72',
+        '#9F5F80',
+        '#FF8E71',
+        '#FFD369',
+        '#940A37',
+        '#FFBA93',
+      ]) // make colors dynamic
     return color;
   };
 
@@ -321,8 +333,9 @@ export const Analytics = () => {
     const svg_legend = d3.select("#chart_legends")
     .append("svg")
       .attr("width", (width))
+      .attr("overflow", "visible")
       .attr("height", height + margin.top + margin.bottom)
-      .style("border", "1px solid lightgrey")
+      // .style("border", "1px solid lightgrey")
 
     const size = 10
     svg_legend.selectAll("mydots")
@@ -348,6 +361,9 @@ export const Analytics = () => {
         .style("alignment-baseline", "middle")
         .style("font-weight", "bold")
         .style("font-size", "15px")
+        .style("text-overflow", "ellipsis")
+        .style("overflow", "hidden")
+        .style("white-space", "nowrap")
   };
 
   // zooming functionality taken from here https://stackoverflow.com/a/49286715/6051241
@@ -453,9 +469,9 @@ export const Analytics = () => {
       allowClose
       full
     >
-      <Box id="chart-wrapper" margin="small" align="center" direction="row" overflow="scroll" background="whitesmoke">
-        <div id="my_dataviz"></div>
-        <div id="chart_legends"></div>
+      <Box id="chart-wrapper" margin="small" align="center" direction="row" overflow="visible">
+        <div id="my_dataviz" overflow="visible"></div>
+        <div id="chart_legends" overflow="visible"></div>
       </Box>
       { showCart ? renderChart() : <Spinner color="neutral-1" /> }
     </Popup>
