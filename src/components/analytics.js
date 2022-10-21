@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQueryClient } from 'react-query';
 import union from 'lodash.union';
 import { Box, Spinner, Heading } from 'grommet';
@@ -11,6 +11,8 @@ import { Popup } from '../components';
  * 2. Height is not responsive on zoom
  * 3. Add animation when transitioning from year to month?
  */
+
+const overflow = "visible";
 
 const getData = (expenditure) => {
 
@@ -28,7 +30,7 @@ const getData = (expenditure) => {
    */
   const subgroups = Object.values(expenditure).map(obj => Object.keys(obj.analytics) );
   const yRange = Object.values(expenditure).map(obj => Object.values(obj.analytics));
-  const years = Object.keys(expenditure);
+  const years = Object.keys(expenditure); // fill in the missing years in this array
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const dataMonth = Object.keys(expenditure).map(year => (
     months
@@ -55,10 +57,12 @@ export const Analytics = () => {
   const queryClient = useQueryClient()
   const files = queryClient.getQueryData('expendituresFiles')
   const [open, setOpen] = useState(false);
-  const [showCart, setShowCart] = useState(false);
+  const [showChart, setShowCart] = useState(false);
+  const graphZoomedRef = useRef(false);
+  const brushRef = useRef();
   
   const { dataYear, dataMonth, xAxisDomainYear, xAxisDomainMonth, subgroups, yRange } = getData(files);
-  console.log('files', getData(files))
+  // console.log('files', getData(files))
 
   const onOpen = () => setOpen(true);
   const onClose = () => {
@@ -84,13 +88,23 @@ export const Analytics = () => {
     // append the svg object to the body of the page
     const svg = d3.select("#my_dataviz")
     .append("svg")
-      .attr("overflow", "visible")
+      // .attr("overflow", "scroll")
+      // .attr("overflowY", overflow)
+      // .attr("overflowX", overflow)
       .attr("width", (width))
       .attr("height", height + margin.top + margin.bottom)
-      // .style("border", "1px solid lightgrey")
-    svg.append("g")
-      .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
+      .append('g')
+		  .attr("transform", "translate(10, 0)");
+    return svg;
+  }
+
+  const createBrushChartSvg = (width, height, margin) => {
+    const svg = d3.select("#brush_chart")
+    .append("svg")
+      .attr("overflow", overflow)
+      .attr("width", (width))
+      .attr("height", height + margin.top + margin.bottom)
+      // .style("border", "1px solid lightgrey")\
     return svg;
   }
 
@@ -101,11 +115,12 @@ export const Analytics = () => {
       .range([0, width])
       .padding([0.2])
     svg.append("g")
-      .attr("transform", "translate(0," + height + ")")
+      .attr("transform", `translate(0, ${height})`)
       .style("font-size", "12px")
       .style("font-weight", "bold")
       .attr("class", "x-axis")
       .call(d3.axisBottom(x));
+    // x.invert = function(x){ return d3.scaleQuantize().domain(this.range()).range(this.domain())(x);}
     return x;
   };
 
@@ -115,7 +130,7 @@ export const Analytics = () => {
       .domain([1, d3.max(yRange)])
       .range([ height - margin.bottom, margin.top ]);
     svg.append("g")
-      .attr("transform", "translate(30,0)")
+      .attr("transform", `translate(30,0)`)
       .attr("class", "y-axis")
       .call(d3.axisLeft(y))
     .append("text")
@@ -126,8 +141,64 @@ export const Analytics = () => {
       .attr("font-weight", "bold")
       .attr("text-anchor", "start")
       .text("Expenditure");
-    console.log('domain', y.domain())
+    
+    svg.selectAll(".y-axis > .tick > text").attr("transform", "rotate(0)");
     return y;
+  };
+
+  const addHiddenDateAxis = (svg, width, xAxisDomainYear) => {
+    const xDateAxis = d3.scaleTime()
+      .domain([ new Date(d3.min(xAxisDomainYear)), new Date(d3.max(xAxisDomainYear)) ])
+      .range([0, width])
+    svg.append("g")
+      .attr("class", "hidden-date-axis")
+      .style("visibility", "hidden")
+      .call(d3.axisBottom(xDateAxis));
+    return xDateAxis;
+  };
+
+  const addSecondaryXAxis = (x, xAxisDomainMonth, currentYear = 'nm') => {
+    const x2 = d3.scaleBand()
+      .domain(xAxisDomainMonth.map(month => `${currentYear}-${month}`))
+      .range([0, x.bandwidth()])
+      .padding(0);
+    return x2;
+  };
+
+  const showSecondaryXAxis = (svg, x, height, call = true) => {
+    const x2s = []
+    const ticks = svg
+      .selectAll(".barGroup")
+      .append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .style("font-size", "10px")
+      .style("font-weight", "bold")
+      .attr("class",(_, i) => `x-axis-2-${i}`)
+      .each((_, i) => {
+        const barGroup = d3.select(`.barGroup:nth-child(${i+1})`);
+        const group = barGroup.data()[0]?.group;
+        const x2 = addSecondaryXAxis(x, xAxisDomainMonth, group);
+        x2s.push(x2);
+      });
+    if(call) {
+      x2s.forEach((x2, i) =>
+      svg.selectAll(`.x-axis-2-${i}`)
+        .call(
+          d3.axisBottom(x2)
+          .tickFormat(d => d.split('-')[1])
+        )
+      )
+    }
+    ticks.selectAll("text").attr("transform", "translate(-10, 10), rotate(-65)");
+    return x2s;
+  };
+
+  const addSubXAxis = (x, subgroups) => {
+    const xSubgroup = d3.scaleBand()
+      .domain(subgroups)
+      .rangeRound([0, x.bandwidth()])
+      .padding([0.05]);
+    return xSubgroup;
   };
 
   const updateYAxisByMonth = (svg, y, yRange, height) => {
@@ -144,6 +215,24 @@ export const Analytics = () => {
       .call(d3.axisLeft(y))
   }
 
+  const addYAxisAndAppendBarsArea = (svg, x, height) => {
+    // add y axis
+    const y = d3.scaleLog()
+      .domain([1, d3.max(yRange)])
+      .range([ height, 0]);
+
+    // add bar areas for each year
+    svg.append("g")
+      .selectAll("g")
+      // Enter in data = loop group per group
+      .data(dataYear)
+      .enter()
+      .append("g")
+        .attr("class", "barGroup")
+        .attr("transform", function(d) { return "translate(" + x(d.group) + ",0)"; })
+    return y;    
+  }
+
   const addGridLines = (svg, y, width) => {
     svg.append("g")
       .attr("class", "grid")
@@ -157,48 +246,6 @@ export const Analytics = () => {
       .attr("stroke-dasharray", "4 4")
       .attr("stroke-width", "1px")
   }
-
-  const addSecondaryXAxis = (x, xAxisDomainMonth, currentYear = 'nm') => {
-    const x2 = d3.scaleBand()
-    .domain(xAxisDomainMonth.map(month => `${currentYear}-${month}`))
-    .range([0, x.bandwidth()])
-    .padding(0);
-    return x2;
-  };
-
-  const showSecondaryXAxis = (svg, x, height) => {
-    const x2s = []
-    const ticks = svg
-      .selectAll(".barGroup")
-      .append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .style("font-size", "10px")
-      .style("font-weight", "bold")
-      .attr("class",(_, i) => `x-axis-2-${i}`)
-      .each((_, i) => {
-        const barGroup = d3.select(`.barGroup:nth-child(${i+1})`);
-        const group = barGroup.data()[0]?.group;
-        const x2 = addSecondaryXAxis(x, xAxisDomainMonth, group);
-        x2s.push(x2);
-      });
-    x2s.forEach((x2, i) =>
-      svg.selectAll(`.x-axis-2-${i}`)
-        .call(
-          d3.axisBottom(x2)
-          .tickFormat(d => d.split('-')[1])
-        )
-      )
-    ticks.selectAll("text").attr("transform", "translate(-10, 10), rotate(-65)");
-    return x2s;
-  };
-
-  const addSubXAxis = (x, subgroups) => {
-    const xSubgroup = d3.scaleBand()
-      .domain(subgroups)
-      .rangeRound([0, x.bandwidth()])
-      .padding([0.05]);
-    return xSubgroup;
-  };
 
   const defineColorPalette = (svg) => {
     const color = d3.scaleOrdinal()
@@ -260,49 +307,58 @@ export const Analytics = () => {
     const xSubgroup = addSubXAxis(x2[0], subgroups); // create new xSubgroup
 
     svg.selectAll(".bar").remove()
+    generateBarsMonthHelper(svg, x2, y, color, xSubgroup);
+  };
+
+  const generateBarsMonthHelper = (svg, x2, y, color, xSubgroup, xs) => {
+    console.log('????', xSubgroup.bandwidth(), x2[0].bandwidth() / xSubgroup.domain().length)
     svg
-      .selectAll(".barGroup")
-        .append("g")
-        .attr("class", "barGroup-Secondary")
-        .selectAll("g")
-          // Enter in data = loop group per group
-          .data((d) => { return dataMonth.filter(data => data.group === d.group) })
-          .enter()
-            .append("g")
-            .attr("class", "barGroup-Secondary")
-            .style("background-color", "pink")
-            .attr("transform", function(d, i) {
-              const xCoord = x2
-                .find(x =>  x(`${d.group}-${d.groupSecondary}`))
-                (`${d.group}-${d.groupSecondary}`)
-              console.log('top', i, `${d.group}-${d.groupSecondary}`, xCoord);
-              return "translate(" + xCoord + ",0)";
-            })
-            .selectAll("rect")
-            .data(d =>
-              subgroups
-                .filter(subgroup => !!d[subgroup])
-                .map(subgroup => ({key: subgroup, value: d[subgroup]}))
-            )
-            .enter().append("rect") // enter = new data array - selection array (previous data array)
-              .attr("class", "bar")
-              .attr("fill", function(d) { return color(d.key); })
-              .attr("x", function(d) { return xSubgroup(d.key); })
-              .attr("y", function(d) { return y(d.value); })
-              .attr("width", xSubgroup.bandwidth())
-            .exit().remove();
-            svg.selectAll("rect")
-              .transition() //assures the transition of the bars
-              .duration(400) //the transition lasts 800 ms
-                .attr("y", d => y(d.value))
-                .attr("height", function(d) { return y(1) - y(d.value); })
-              .delay(300)
+    .selectAll(".barGroup")
+      .append("g")
+      .attr("class", "barGroup-Secondary")
+      .selectAll("g")
+        // Enter in data = loop group per group
+        .data((d) => { return dataMonth.filter(data => data.group === d.group) })
+        .enter()
+          .append("g")
+          .style("background-color", "pink")
+          .attr("transform", function(d, i) {
+            const xCoord = x2
+              .find(x =>  x(`${d.group}-${d.groupSecondary}`))
+              (`${d.group}-${d.groupSecondary}`)
+            // console.log('top', i, `${d.group}-${d.groupSecondary}`, xCoord);
+            return "translate(" + xCoord + ",0)";
+          })
+          .selectAll("rect")
+          .data(d =>
+            subgroups
+              .filter(subgroup => !!d[subgroup])
+              .map(subgroup => ({key: subgroup, value: d[subgroup]}))
+          )
+          .enter().append("rect") // enter = new data array - selection array (previous data array)
+            .attr("class", "bar")
+            .attr("fill", function(d) { return color(d.key); })
+            .attr("x", function(d) { return xSubgroup(d.key); })
+            .attr("y", function(d) { return y(d.value); })
+            .attr("width", xSubgroup.bandwidth() || x2[0].bandwidth() / xSubgroup.domain().length)
+          .exit().remove();
+          svg.selectAll("rect")
+            .transition() //assures the transition of the bars
+            .duration(400) //the transition lasts 800 ms
+              .attr("y", d => y(d.value))
+              .attr("height", function(d) { return y(1) - y(d.value); })
+            .delay(300)
   };
 
   // shamelessly got code from here https://medium.com/@kj_schmidt/show-data-on-mouse-over-with-d3-js-3bf598ff8fc2
   const showDataOnHover = (svg) => {
-    const div = d3.select("body").append("div")
-      .attr("class", "svg1-tooltip")
+    let div;
+    if (d3.selectAll("[class*='svg1-tooltip']").empty()) {
+      div = d3.select("body").append("div")
+        .attr("class", "svg1-tooltip")
+    } else {
+      div = d3.selectAll("[class*='svg1-tooltip']");
+    }
 
     svg.selectAll("rect")
     .on('mouseover', function (event, d) {
@@ -366,57 +422,109 @@ export const Analytics = () => {
         .style("white-space", "nowrap")
   };
 
+  const createBrush = (svg, height, width, x, zoom, xSubgroup) => {
+    const brush = d3.brushX()
+      .extent([[0, 0], [width, height]])
+      .on("brush", brushed);
+
+    brushRef.current = {brush, x};
+    console.log('range', x.range())
+    svg.append("g")
+      .attr("class", "brush")
+      // .attr("visibility", "hidden")
+      .call(brush)
+      .call(brush.move, x.range());
+      // .call(brush.move, [x(x.domain()[0]), x(x.domain()[1])]);
+
+    d3.selectAll('.handle').remove();
+    d3.selectAll('.resize').remove();
+    d3.selectAll('.background').remove();
+    d3.selectAll('.overlay').remove();
+  
+    function brushed(event) {
+      if (
+        !event.sourceEvent ||
+        (event.sourceEvent && event.sourceEvent.type === "zoom")
+      ) return; // ignore brush-by-zoom
+      const s = event.selection;
+      d3.select(".zoom").call(zoom.transform, d3.zoomIdentity
+        .scale(width / (s[1] - s[0]))
+        .translate(-s[0], 0));
+    }
+  }
+
   // zooming functionality taken from here https://stackoverflow.com/a/49286715/6051241
-  const zoomChart = (svg, margin, x, xSubgroup, y, width, height, color) => {
+  const zoomChart = (svg, margin, x, xSubgroup, xDateAxis, xDateAxisReference, y, width, height, color) => {
     const extent = [[margin.left, margin.top], [width - margin.right, height - margin.top]];
 
-    svg.call(d3.zoom()
-        .scaleExtent([1, 2])
-        .translateExtent(extent)
-        .extent(extent)
-        .on("zoom", zoomed));
+    const zoomScale = x.domain().length * 1.2;
+
+    const zoom = d3.zoom()
+      .scaleExtent([1, zoomScale])
+      .translateExtent(extent)
+      .extent(extent)
+      .on("zoom", zoomed);
+
+    svg
+      .attr("class", "zoom")
+      .call(zoom);
 
     function zoomed(event) {
       /* bit of a hack here: need to manually disable hovered datas when the user zooms */
       d3.selectAll('.svg1-tooltip').style("visibility", 'hidden');
       /* hack end */
 
-      x.range([0, width].map(d => event.transform.applyX(d)));
-      // y.range([height, 0].map(d => event.transform.applyY(d)));
+      graphZoomedRef.current = (event.transform.k === zoomScale);
+
       xSubgroup.rangeRound([0, x.bandwidth()]);
-
+      x.range([0, width].map(d => event.transform.applyX(d)));
       svg.select(".x-axis").call(d3.axisBottom(x));
-      // svg.select(".y-axis").call(d3.axisLeft(y));
-      // svg.select(".x-axis").call(d3.axisBottom(x).scale(event.transform.rescaleX(x)));
-      // svg.select(".y-axis").call(d3.axisLeft(y).scale(event.transform.rescaleY(y)));
-      // svg.call(yAxis.scale(event.transform.rescaleY(y)));
-
-      // console.log('range', d3.zoomIdentity, event.transform, x.domain(), y.domain())
-
-
-
       svg.selectAll(".barGroup").attr("transform", (d) => "translate(" + x(d.group) + ",0)");
-      // svg.selectAll(".bar")
-        // .attr("x", function(d) { return xSubgroup(d.key);})
-        // .attr("y", function(d) { console.log('y is', d); return y(d.value);})
-        // .attr("height", function(d) { return height - y(d.value); })
-        // .attr("width", xSubgroup.bandwidth());
 
-      if (event.transform.k === 2) {
-        if (!d3.selectAll("[class*='x-axis-2']").empty()) return;
-        const x2 = showSecondaryXAxis(svg, x, height);
-        if (d3.selectAll(".barGroup-Secondary").empty()) generateBarsMonth(svg, x, x2, y, height, color)
+      /**
+       * we need to use a reference scale here so that zooming
+       * is relative to the original zoom state and not the last zoom state
+       * explanation: https://stackoverflow.com/a/50185040/6051241 (which is a bit confusing)
+       *  */
+       if (
+        (event.sourceEvent && event.sourceEvent.type) !== "brush"
+      ) {
+        xDateAxis.domain(event.transform.rescaleX(xDateAxisReference).domain());
+        const [startPoint, endPoint] = xDateAxis.domain();
+        d3.select(".brush")
+        .call(
+          brushRef.current.brush.move,
+          [xDateAxisReference(startPoint), xDateAxisReference(endPoint)]
+          );
+      }
+      /**
+       * the transform value we get from the brush-triggered zoom event is
+       * not accurate upto 6/7 decimal places, so we need to use the
+       * example: we get 8.99999998 instead of 9
+       * so we need to round it off to 9 ONLY if the zoom event is triggered by the brush
+       */
+      const transformValue = Math.abs(event.transform.k - zoomScale);
+      if (transformValue < 0.00001) {
+        if (event.sourceEvent && event.sourceEvent.type !== "brush") {
+          // if the secondary axes have already been rendered then just go back
+          if (svg.selectAll("[class*='x-axis-2']").empty()) {
+            const x2 = showSecondaryXAxis(svg, x, height);
+            if (svg.selectAll(".barGroup-Secondary").empty()) generateBarsMonth(svg, x, x2, y, height, color)
+          }
+        }
       } else {
         svg.selectAll(".bar")
           .attr("x", function(d) { return xSubgroup(d.key);})
           .attr("width", xSubgroup.bandwidth());
-        if (!d3.selectAll(".barGroup-Secondary").empty()) {
+        if (!svg.selectAll(".barGroup-Secondary").empty()) {
           generateBarsYear(svg, x, y, height, color);
           svg.selectAll("[class*='x-axis-2']").remove();
         }
       }
       showDataOnHover(svg);
     }
+
+    return zoom;
   };
 
   // shamelessly got code from here https://d3-graph-gallery.com/graph/barplot_grouped_basicWide.html
@@ -430,6 +538,10 @@ export const Analytics = () => {
     const x = addXAxis(svg, xAxisDomainYear, chartWidth, height);
 
     const y = addYAxis(svg, yRange, height, margin);
+
+    const xDateAxis = addHiddenDateAxis(svg, chartWidth, xAxisDomainYear);
+
+    const xDateAxisReference = xDateAxis.copy();
 
     addGridLines(svg, y, chartWidth);
 
@@ -450,12 +562,45 @@ export const Analytics = () => {
     createLegends(height, legendWidth, margin, color);
 
     // add zoom
-    zoomChart(svg, margin, x, xSubgroup, y, chartWidth, height, color);
+    const zoom = zoomChart(svg, margin, x, xSubgroup, xDateAxis, xDateAxisReference, y, chartWidth, height, color);
+
+    renderBrushChart(chartWidth, margin, zoom, xSubgroup);
   };
+
+  const renderBrushChart = (width, margin, zoom, xSubgroupMain) => {
+    const height = 70 - margin.top - margin.bottom;
+
+    const svg = createBrushChartSvg(width, height, margin);
+
+    const x = addXAxis(svg, xAxisDomainYear, width, height);
+
+    const y = addYAxisAndAppendBarsArea(svg, x, height);
+
+    // add Monthly axis
+    const x2 = showSecondaryXAxis(svg, x, height, false);
+
+    const xSubgroup = addSubXAxis(x2[0], subgroups);
+
+    const color = defineColorPalette(svg);
+
+    generateBarsMonthHelper(svg, x2, y, color, xSubgroup);
+
+    createBrush(svg, height, width, x, zoom, xSubgroupMain);
+  }
+
+  const renderSpinner = () => <Spinner color="neutral-1" />;
 
   useEffect(() => {
     if (open) { setTimeout(() => { setShowCart(true); }, 1000); }
   }, [open]);
+
+  useEffect(() => {
+    if (showChart) renderChart();
+    else renderSpinner();
+  }, [showChart]);
+
+  useEffect(() => {
+  }, [graphZoomedRef.current]);
 
   return (
     <>
@@ -469,11 +614,13 @@ export const Analytics = () => {
       allowClose
       full
     >
-      <Box id="chart-wrapper" margin="small" align="center" direction="row" overflow="visible">
-        <div id="my_dataviz" overflow="visible"></div>
-        <div id="chart_legends" overflow="visible"></div>
+      <Box id="chart-wrapper" margin="small" align="center" direction="row" overflow={overflow}>
+        <div id="my_dataviz" overflow={overflow}></div>
+        <div id="chart_legends" overflow={overflow}></div>
       </Box>
-      { showCart ? renderChart() : <Spinner color="neutral-1" /> }
+      <Box id="brush-wrapper" margin="small" align="center" direction="row" overflow={overflow}>
+         <div id="brush_chart" overflow={overflow}></div>
+      </Box>
     </Popup>
     </>
   );
