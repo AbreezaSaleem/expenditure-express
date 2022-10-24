@@ -61,7 +61,11 @@ export const Header = () => {
   };
 
   return (
-    <GrommetHeader background="light-6" pad="small">
+    <GrommetHeader
+      style={{ borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }}
+      background="#00873d2b"
+      pad="small"
+    >
       <GoogleLogin
         onSuccess={ onSuccess }
         onError={ onError }

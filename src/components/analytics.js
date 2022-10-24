@@ -76,7 +76,7 @@ export const Analytics = () => {
     const computedStyle = getComputedStyle(element);
     let width = element.clientWidth;   // width with padding
     width -= parseFloat(computedStyle.paddingLeft) + parseFloat(computedStyle.paddingRight);
-    const height = 400 - margin.top - margin.bottom;
+    const height = (window.innerHeight * .7) - margin.top - margin.bottom;
     const parentWidth = document.getElementById('chart-wrapper').offsetWidth;
     const chartWidth = width * .9;
     const legendWidth = width * .085;

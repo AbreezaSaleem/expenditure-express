@@ -28,11 +28,12 @@ function App() {
       <Grommet theme={ customTheme }>
         <Header />
         <Box
+          id="main-container"
           direction="column"
           justify="center"
           align="center"
           pad="large"
-          background="status-disabled"
+          background="#00873d0a"
         >
           <FileUpload />
           {!isLoading && !isError && !isempty(data) && <ExpendituresList data={ data } />}

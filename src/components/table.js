@@ -20,7 +20,16 @@ export const Table = ({ data }) => {
 
   return (
     <Box align="center" pad="large">
-      <DataTable columns={columns} data={ expenditure } step={10} />
+      <DataTable
+        columns={columns}
+        data={ expenditure }
+        step={10}
+        background={{
+          header: { color: 'dark-3', opacity: 'strong' },
+          body: ['light-1', 'light-3'],
+          footer: { color: 'dark-3', opacity: 'strong' },
+        }}
+      />
     </Box>
   );
 };

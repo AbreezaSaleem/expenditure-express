@@ -12,7 +12,7 @@ const MonthlyExpenditures = ({ year, month, expenditure }) => {
 
   return (
     <Box
-      background={{ color: 'neutral-3', opacity: true, width: '100%' }}
+      background={{ color: 'neutral-1', opacity: true, width: '100%' }}
       elevation="medium"
       pad="small"
       fill
@@ -44,7 +44,7 @@ export const YearlyExpenditures = ({ year, expenditure }) => {
 
   return (
     <Box
-      background={{ color: 'neutral-3', opacity: true, width: '100%' }}
+      background={{ color: 'neutral-1', opacity: true, width: '100%' }}
       elevation="medium"
       pad="small"
       fill
