@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { parseJwt } from '../utils/index';
 
-const endpoint = process.env.REACT_APP_BUILD_ENV === "production"
-  ? "https://enigmatic-cliffs-45128.herokuapp.com"
-  : "http://localhost:8080";
+const endpoint = process.env.REACT_APP_BUILD_ENV === "DEVELOP"
+  ? "http://localhost:8080"
+  : "https://enigmatic-cliffs-45128.herokuapp.com";
 
 // block call if the token has been expired. Delete it from local storage as well
 export const fetchExpenditures = async () => {
