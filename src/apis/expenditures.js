@@ -10,10 +10,10 @@ export const fetchExpenditures = async () => {
   if (!localStorage.getItem('credential')) return;
   const token = localStorage.getItem('credential');
   const exp = parseJwt(token);
-  // console.log(exp);
+  const { email } = exp;
   const response = await axios.get(
     `${endpoint}/fetch-csv`, {
-    params: { email: 'ali.khilji94@gmail.com' },
+    params: { email },
     headers: {
       'Authorization': 'Bearer ' + localStorage.getItem('credential'),
     },
@@ -21,12 +21,19 @@ export const fetchExpenditures = async () => {
   return response.data;
 }
 
-export const uploadExpenditureFile = async (formData) => await axios.post(
-  `${endpoint}/parse-csv`, 
-  formData, {
-    headers: {
-      'Content-Type': 'text/csv',
-      'Authorization': 'Bearer ' + localStorage.getItem('credential'),
-    },
-  }
-);
+export const uploadExpenditureFile = async (formData) =>{
+  if (!localStorage.getItem('credential')) return;
+  const token = localStorage.getItem('credential');
+  const exp = parseJwt(token);
+  const { email } = exp;
+  formData.append('email', email);
+  return await axios.post(
+    `${endpoint}/parse-csv`, 
+    formData, {
+      headers: {
+        'Content-Type': 'text/csv',
+        'Authorization': 'Bearer ' + localStorage.getItem('credential'),
+      },
+    }
+  );
+};

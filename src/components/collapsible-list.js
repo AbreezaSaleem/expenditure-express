@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Collapsible, Box, Text, Heading } from 'grommet';
 import { Table, Analytics } from '../components';
 
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 const MonthlyExpenditures = ({ year, month, expenditure }) => {
   const [openMonthly, setOpenMonthly] = useState(false);
 
@@ -32,13 +34,15 @@ export const YearlyExpenditures = ({ year, expenditure }) => {
   const [openYearly, setOpenYearly] = useState(false);
   const { analytics, ...rest } = expenditure;
 
+  const monthDataSorted = Object.entries(rest).sort((a, b) => months.indexOf(a[0]) - months.indexOf(b[0]));
+
   const renderMonthlyExpenditures = () => 
-    Object.keys(rest).map(month =>
+    monthDataSorted.map(([month, data]) =>
       <MonthlyExpenditures
         key={`${year}-${month}`}
         year={ year }
         month={ month }
-        expenditure={ rest[month] }
+        expenditure={ data }
       />
     );
 

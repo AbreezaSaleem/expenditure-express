@@ -5,13 +5,6 @@ import { Box, Spinner, Heading } from 'grommet';
 import * as d3 from 'd3';
 import { Popup } from '../components';
 
-/**
- * Issues: 
- * 1. There's too big a difference between y values of the bars. Small bars are barely visible 
- * 2. Height is not responsive on zoom
- * 3. Add animation when transitioning from year to month?
- */
-
 const overflow = "visible";
 
 const getData = (expenditure) => {
@@ -62,8 +55,7 @@ export const Analytics = () => {
   const brushRef = useRef();
   
   const { dataYear, dataMonth, xAxisDomainYear, xAxisDomainMonth, subgroups, yRange } = getData(files);
-  // console.log('files', getData(files))
-
+  console.log('files', getData(files));
   const onOpen = () => setOpen(true);
   const onClose = () => {
     setOpen(false);
@@ -80,7 +72,6 @@ export const Analytics = () => {
     const parentWidth = document.getElementById('chart-wrapper').offsetWidth;
     const chartWidth = width * .9;
     const legendWidth = width * .085;
-    // console.log('width', parentWidth, width, chartWidth, legendWidth, chartWidth+legendWidth);
     return { height, parentWidth, chartWidth, legendWidth, margin };
   }
 
@@ -88,9 +79,6 @@ export const Analytics = () => {
     // append the svg object to the body of the page
     const svg = d3.select("#my_dataviz")
     .append("svg")
-      // .attr("overflow", "scroll")
-      // .attr("overflowY", overflow)
-      // .attr("overflowX", overflow)
       .attr("width", (width))
       .attr("height", height + margin.top + margin.bottom)
       .append('g')
@@ -279,13 +267,12 @@ export const Analytics = () => {
         .attr("class", "barGroup")
         .attr("transform", function(d) { return "translate(" + x(d.group) + ",0)"; })
       .selectAll("rect")
-      // .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
       .data(d =>
         subgroups
           .filter(subgroup => !!d[subgroup])
           .map(subgroup => ({key: subgroup, value: d[subgroup]}))
       )
-      .enter().append("rect") // enter = new data array - selection array (previous data array)
+      .enter().append("rect") // enter = new data array - already existing DOM elements (previous data array)
         .attr("class", "bar")
         .attr("x", function(d) { return xSubgroup(d.key); })
         .attr("y", function(d) { return y(d.value); })
@@ -311,7 +298,6 @@ export const Analytics = () => {
   };
 
   const generateBarsMonthHelper = (svg, x2, y, color, xSubgroup, xs) => {
-    console.log('????', xSubgroup.bandwidth(), x2[0].bandwidth() / xSubgroup.domain().length)
     svg
     .selectAll(".barGroup")
       .append("g")
@@ -324,7 +310,7 @@ export const Analytics = () => {
           .style("background-color", "pink")
           .attr("transform", function(d, i) {
             const xCoord = x2
-              .find(x =>  x(`${d.group}-${d.groupSecondary}`))
+              .find(x =>  x(`${d.group}-${d.groupSecondary}`) !== undefined)
               (`${d.group}-${d.groupSecondary}`)
             // console.log('top', i, `${d.group}-${d.groupSecondary}`, xCoord);
             return "translate(" + xCoord + ",0)";
@@ -350,7 +336,7 @@ export const Analytics = () => {
             .delay(300)
   };
 
-  // shamelessly got code from here https://medium.com/@kj_schmidt/show-data-on-mouse-over-with-d3-js-3bf598ff8fc2
+  // got code from here https://medium.com/@kj_schmidt/show-data-on-mouse-over-with-d3-js-3bf598ff8fc2
   const showDataOnHover = (svg) => {
     let div;
     if (d3.selectAll("[class*='svg1-tooltip']").empty()) {
@@ -422,13 +408,12 @@ export const Analytics = () => {
         .style("white-space", "nowrap")
   };
 
-  const createBrush = (svg, height, width, x, zoom, xSubgroup) => {
+  const createBrush = (svg, height, width, x, zoom) => {
     const brush = d3.brushX()
       .extent([[0, 0], [width, height]])
       .on("brush", brushed);
 
     brushRef.current = {brush, x};
-    console.log('range', x.range())
     svg.append("g")
       .attr("class", "brush")
       // .attr("visibility", "hidden")
@@ -453,7 +438,7 @@ export const Analytics = () => {
     }
   }
 
-  // zooming functionality taken from here https://stackoverflow.com/a/49286715/6051241
+  // for zooming functionality initially refered to this code https://stackoverflow.com/a/49286715/6051241
   const zoomChart = (svg, margin, x, xSubgroup, xDateAxis, xDateAxisReference, y, width, height, color) => {
     const extent = [[margin.left, margin.top], [width - margin.right, height - margin.top]];
 
@@ -468,17 +453,19 @@ export const Analytics = () => {
     svg
       .attr("class", "zoom")
       .call(zoom);
+      
 
     function zoomed(event) {
       /* bit of a hack here: need to manually disable hovered datas when the user zooms */
       d3.selectAll('.svg1-tooltip').style("visibility", 'hidden');
       /* hack end */
+      console.log('event', event.transform)
 
       graphZoomedRef.current = (event.transform.k === zoomScale);
 
-      xSubgroup.rangeRound([0, x.bandwidth()]);
       x.range([0, width].map(d => event.transform.applyX(d)));
       svg.select(".x-axis").call(d3.axisBottom(x));
+      xSubgroup.rangeRound([0, x.bandwidth()]);
       svg.selectAll(".barGroup").attr("transform", (d) => "translate(" + x(d.group) + ",0)");
 
       /**
@@ -499,9 +486,10 @@ export const Analytics = () => {
       }
       /**
        * the transform value we get from the brush-triggered zoom event is
-       * not accurate upto 6/7 decimal places, so we need to use the
+       * not accurate upto 6/7 decimal places, so we check if the difference
+       * between the zoomScale and event.transform.k is less than 0.000001 or not
+       * as a hack to check if we've fully zoomed in or not
        * example: we get 8.99999998 instead of 9
-       * so we need to round it off to 9 ONLY if the zoom event is triggered by the brush
        */
       const transformValue = Math.abs(event.transform.k - zoomScale);
       if (transformValue < 0.00001) {
@@ -527,7 +515,7 @@ export const Analytics = () => {
     return zoom;
   };
 
-  // shamelessly got code from here https://d3-graph-gallery.com/graph/barplot_grouped_basicWide.html
+  // initially refered to this code https://d3-graph-gallery.com/graph/barplot_grouped_basicWide.html
   const renderChart = () => {
     // set the dimensions and margins of the graph
     const { height, chartWidth, legendWidth, margin } = defineChartDimensions();
@@ -564,10 +552,10 @@ export const Analytics = () => {
     // add zoom
     const zoom = zoomChart(svg, margin, x, xSubgroup, xDateAxis, xDateAxisReference, y, chartWidth, height, color);
 
-    renderBrushChart(chartWidth, margin, zoom, xSubgroup);
+    renderBrushChart(chartWidth, margin, zoom);
   };
 
-  const renderBrushChart = (width, margin, zoom, xSubgroupMain) => {
+  const renderBrushChart = (width, margin, zoom) => {
     const height = 70 - margin.top - margin.bottom;
 
     const svg = createBrushChartSvg(width, height, margin);
@@ -585,7 +573,7 @@ export const Analytics = () => {
 
     generateBarsMonthHelper(svg, x2, y, color, xSubgroup);
 
-    createBrush(svg, height, width, x, zoom, xSubgroupMain);
+    createBrush(svg, height, width, x, zoom);
   }
 
   const renderSpinner = () => <Spinner color="neutral-1" />;
@@ -598,9 +586,6 @@ export const Analytics = () => {
     if (showChart) renderChart();
     else renderSpinner();
   }, [showChart]);
-
-  useEffect(() => {
-  }, [graphZoomedRef.current]);
 
   return (
     <>

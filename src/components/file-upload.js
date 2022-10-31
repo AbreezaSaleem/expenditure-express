@@ -6,7 +6,7 @@ import { Popup, SampleFile } from '../components';
 import { uploadExpenditureFile } from '../apis/expenditures';
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const years = ['2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];
+const years = ['2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011', '2010'];
 
 export const FileUpload = () => {
   const [timePeriod, setTimePeriod] = useState({ month: null, year: null });
@@ -46,7 +46,6 @@ export const FileUpload = () => {
     if(!file) return;
     const formData = new FormData()
     formData.append('csvFile', file);
-    formData.append('email', 'ali.khilji94@gmail.com');
     formData.append('timePeriod', `${timePeriod.month}-${timePeriod.year}`);
     formData.append('groupBy', groupBy);
     uploadFileOnServer(formData);
