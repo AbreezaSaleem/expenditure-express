@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { parseJwt } from '../utils/index';
 
+console.log('mf', process.env.REACT_APP_BUILD_ENV)
+
 const endpoint = process.env.REACT_APP_BUILD_ENV === "DEVELOP"
   ? "http://localhost:8080"
   : "https://enigmatic-cliffs-45128.herokuapp.com";
