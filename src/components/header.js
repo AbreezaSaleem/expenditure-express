@@ -2,11 +2,14 @@ import React from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { Header as GrommetHeader, Anchor, Box, Menu, ResponsiveContext } from 'grommet';
 import { Menu as MenuIcon } from 'grommet-icons';
+import { parseJwt } from '../utils/index';
 
 const { Consumer } = ResponsiveContext;
 
 export const Header = () => {
-  const userLoggedIn = !!localStorage.getItem('credential');
+  const token = localStorage.getItem('credential');
+  const exp = parseJwt(token);
+  const { given_name } = exp;
 
   const onSuccess = async credentialResponse => {
     alert('User logged in successfully');
@@ -36,7 +39,7 @@ export const Header = () => {
                 label: <Box pad="small">View Expenditures</Box>,
                 href: '#',
               },
-              (userLoggedIn ? {
+              (!!token ? {
                 label: <Box pad="small">Logout</Box>,
                 onClick: handleLogout,
               } : {}),
@@ -48,8 +51,8 @@ export const Header = () => {
       return (
         <Box justify="end" direction="row" alignItems="center" gap="medium">
           <Anchor alignSelf="center" color="neutral-1" href="#" label="View Expenditures" />
-          {userLoggedIn && <Menu
-            label="Hey, Abreeza"
+          {!!token && <Menu
+            label={`Hey, ${given_name}`}
             alignItems="center"
             items={[
               { label: 'Logout', onClick: handleLogout },
