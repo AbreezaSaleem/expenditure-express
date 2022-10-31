@@ -9,7 +9,6 @@ const { Consumer } = ResponsiveContext;
 export const Header = () => {
   const token = localStorage.getItem('credential');
   const exp = parseJwt(token);
-  const { given_name } = exp;
 
   const onSuccess = async credentialResponse => {
     alert('User logged in successfully');
@@ -52,7 +51,7 @@ export const Header = () => {
         <Box justify="end" direction="row" alignItems="center" gap="medium">
           <Anchor alignSelf="center" color="neutral-1" href="#" label="View Expenditures" />
           {!!token && <Menu
-            label={`Hey, ${given_name}`}
+            label={`Hey, ${exp.given_name}`}
             alignItems="center"
             items={[
               { label: 'Logout', onClick: handleLogout },
