@@ -242,11 +242,11 @@ export const Analytics = () => {
         '#864000',
         '#D44000',
         '#FF7A00',
-        '#FFEFCF',
+        '#FFD369',
         '#583D72',
         '#9F5F80',
+        '#FFEFCF',
         '#FF8E71',
-        '#FFD369',
         '#940A37',
         '#FFBA93',
       ]) // make colors dynamic
@@ -459,7 +459,6 @@ export const Analytics = () => {
       /* bit of a hack here: need to manually disable hovered datas when the user zooms */
       d3.selectAll('.svg1-tooltip').style("visibility", 'hidden');
       /* hack end */
-      console.log('event', event.transform)
 
       graphZoomedRef.current = (event.transform.k === zoomScale);
 
