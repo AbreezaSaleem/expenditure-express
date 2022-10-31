@@ -1,11 +1,7 @@
 import axios from 'axios';
 import { parseJwt } from '../utils/index';
 
-console.log('mf', process.env.REACT_APP_BUILD_ENV)
-
-const endpoint = process.env.REACT_APP_BUILD_ENV === "DEVELOP"
-  ? "http://localhost:8080"
-  : "https://enigmatic-cliffs-45128.herokuapp.com";
+const hostname = "https://enigmatic-cliffs-45128.herokuapp.com";
 
 // block call if the token has been expired. Delete it from local storage as well
 export const fetchExpenditures = async () => {
@@ -14,7 +10,7 @@ export const fetchExpenditures = async () => {
   const exp = parseJwt(token);
   const { email } = exp;
   const response = await axios.get(
-    `${endpoint}/fetch-csv`, {
+    `${hostname}/fetch-csv`, {
     params: { email },
     headers: {
       'Authorization': 'Bearer ' + localStorage.getItem('credential'),
@@ -30,7 +26,7 @@ export const uploadExpenditureFile = async (formData) =>{
   const { email } = exp;
   formData.append('email', email);
   return await axios.post(
-    `${endpoint}/parse-csv`, 
+    `${hostname}/parse-csv`, 
     formData, {
       headers: {
         'Content-Type': 'text/csv',
