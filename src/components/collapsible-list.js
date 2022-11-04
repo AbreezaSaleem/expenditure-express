@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import isempty from 'lodash.isempty';
 import { Collapsible, Box, Text, Heading } from 'grommet';
 import { Table, Analytics } from '../components';
 
@@ -23,7 +24,7 @@ const MonthlyExpenditures = ({ year, month, expenditure }) => {
       <Text color="white">{month}</Text>
       <Box fill>
         <Collapsible fill open={openMonthly}>
-          <Table data={expenditure} />
+          {!isempty(expenditure) && <Table data={expenditure} month={month} year={year} />}
         </Collapsible>
       </Box>
     </Box>

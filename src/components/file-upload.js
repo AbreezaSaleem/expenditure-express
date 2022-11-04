@@ -11,7 +11,7 @@ const years = ['2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015', '
 export const FileUpload = () => {
   const [timePeriod, setTimePeriod] = useState({ month: null, year: null });
   const [open, setOpen] = useState(false);
-  const [groupBy, setGroupBy] = React.useState('');
+  const [groupBy, setGroupBy] = React.useState('Category');
 
   const onOpen = () => setOpen(true);
   const onClose = () => setOpen(false);
@@ -86,6 +86,7 @@ export const FileUpload = () => {
         <TextInput
           value={groupBy}
           onChange={onChange}
+          focusIndicator
         />
         <Box
           as="footer"
@@ -96,11 +97,11 @@ export const FileUpload = () => {
           pad={{ top: 'medium', bottom: 'small' }}
         >              
           <Button
-            label={<Text color="white">Confirm</Text>}
+            label={<Text color="white" weight="bold">Confirm</Text>}
             onClick={onClose}
             primary
             disabled={ !groupBy }
-            color="status-critical"
+            color="status-warning"
           />
         </Box>
       </Popup>

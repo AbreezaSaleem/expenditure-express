@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, Grid, Heading, Layer, Text } from 'grommet';
+import { Box, Button, Heading, Layer, Text } from 'grommet';
 import { FormClose } from 'grommet-icons';
 
 export const Popup = ({
@@ -14,20 +14,21 @@ export const Popup = ({
           position="center"
           onEsc={onClose}
           onClickOutside={allowClose && onClose}
+          background="white"
         >
           <Box full={full} pad="medium" gap="small" >
             <Box
               full={full} direction="row" justify="between" pad="none"
             >
-              <Box width="33%" />
+              {allowClose && <Box width="33%" />}
               <Heading width="33%" textAlign="center" level={3} margin="none">{heading}</Heading>
               {allowClose && (
                 <Box width="33%">
-                  <Button alignSelf="end" icon={<FormClose />} onClick={onClose} plain />
+                  <Button alignSelf="end" icon={<FormClose color="#444444" />} onClick={onClose} plain />
                 </Box>
               )}
             </Box>
-            <Text>{description}</Text>
+            <Text weight="bold" alignSelf="center">{description}</Text>
             <Box gap="small" direction="column">
               { children }
             </Box>

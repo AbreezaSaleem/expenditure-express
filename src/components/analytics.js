@@ -50,16 +50,16 @@ export const Analytics = () => {
   const queryClient = useQueryClient()
   const files = queryClient.getQueryData('expendituresFiles')
   const [open, setOpen] = useState(false);
-  const [showChart, setShowCart] = useState(false);
+  const [showChart, setShowChart] = useState(false);
   const graphZoomedRef = useRef(false);
   const brushRef = useRef();
   
   const { dataYear, dataMonth, xAxisDomainYear, xAxisDomainMonth, subgroups, yRange } = getData(files);
-  console.log('files', getData(files));
+  // console.log('files', JSON.stringify(getData(files)));
   const onOpen = () => setOpen(true);
   const onClose = () => {
     setOpen(false);
-    setShowCart(false);
+    setShowChart(false);
   }
 
   const defineChartDimensions = () => {
@@ -352,7 +352,7 @@ export const Analytics = () => {
           .duration('50')
           .attr('opacity', '.8')
           .attr('cursor', 'pointer');
-        div.html(`${d.value}, ${d.key}`)
+        div.html(`${Math.round(d.value)}, ${d.key}`)
           .transition().duration(50)
           .style("left", (event.pageX + 10) + "px")
           .style("top", (event.pageY - 15) + "px")
@@ -578,7 +578,7 @@ export const Analytics = () => {
   const renderSpinner = () => <Spinner color="neutral-1" />;
 
   useEffect(() => {
-    if (open) { setTimeout(() => { setShowCart(true); }, 1000); }
+    if (open) { setTimeout(() => { setShowChart(true); }, 1000); }
   }, [open]);
 
   useEffect(() => {
