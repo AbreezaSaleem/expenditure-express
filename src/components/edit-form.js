@@ -2,6 +2,8 @@ import React from 'react';
 import { Box, Text, Button, Form, FormField, MaskedInput } from 'grommet';
 import { Popup } from '../components';
 
+const currency_regex = /^\$?\-?([1-9]{1}[0-9]{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))$|^\-?\$?([1-9]{1}\d{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))$|^\(\$?([1-9]{1}\d{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))\)$/;
+
 export const EditForm = ({ data, updateData, open, onClose, updateFile, edit = true }) => {
   const heading = edit ? 'Edit Field' : 'Add Field';
   const description = edit ? 'Edit the field and click save' : 'Add a new field and click save';
@@ -36,10 +38,10 @@ export const EditForm = ({ data, updateData, open, onClose, updateFile, edit = t
           const isNumberField =
             !isNaN(parseFloat(data[key])) && isFinite(data[key]) 
             || key === 'Expenditure';
-          const regexp = isNumberField ? /^[1-9]\d*(\.\d+)?$/ : null;
+          const regexp = isNumberField ? currency_regex : null;
           return (
           <FormField key={key} name={key} label={key} required>
-            <MaskedInput name={key} mask={[{ regexp }]} />
+            <MaskedInput disabled={edit && key === 'Category'} name={key} mask={[{ regexp }]} />
           </FormField>
         )})}
         <Box direction="row" justify="between" margin={{ top: 'medium' }}>

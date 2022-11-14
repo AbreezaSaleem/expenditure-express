@@ -108,7 +108,7 @@ export const Table = ({ data, month, year }) => {
       open={openAddForm} onClose={setCloseAddForm}
       edit={false} updateFile={addData}
     />
-    <Box alignSelf="center" pad="none" width="large">
+    <Box overflow="scroll" alignSelf="center" pad="none" width="large">
       <Box pad="small" fill>{ renderUpdateIcons() }</Box>
       <DataTable
         onClick={(event) => event.stopPropagation()}
