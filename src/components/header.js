@@ -36,7 +36,7 @@ export const Header = () => {
             items={[
               {
                 label: <Box pad="small">View Expenditures</Box>,
-                href: '#',
+                href: '#expenditures',
               },
               (!!token ? {
                 label: <Box pad="small">Logout</Box>,
@@ -49,7 +49,7 @@ export const Header = () => {
     } else {
       return (
         <Box justify="end" direction="row" alignItems="center" gap="medium">
-          <Anchor alignSelf="center" color="neutral-1" href="#" label="View Expenditures" />
+          <Anchor alignSelf="center" color="neutral-1" href="#expenditures" label="View Expenditures" />
           {!!token && <Menu
             label={`Hey, ${exp.given_name}`}
             alignItems="center"
