@@ -21,7 +21,7 @@ export const Header = () => {
       setTimeout(function () {
         localStorage.removeItem('eeEmail');
         localStorage.removeItem('eeName');
-        // window.location.reload(true);
+        window.location.reload(true);
       }, 2500);
     },
   });
