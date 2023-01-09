@@ -13,7 +13,7 @@ export const GoogleLogin = () => {
       localStorage.setItem('eeEmail', email);
       localStorage.setItem('eeName', name);
       setTimeout(function () {
-        window.location.reload(true);
+        // window.location.reload(true);
       }, 1500);
     },
   });

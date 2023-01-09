@@ -20,7 +20,8 @@ export const Header = () => {
       });
       setTimeout(function () {
         localStorage.removeItem('eeEmail');
-        window.location.reload(true);
+        localStorage.removeItem('eeName');
+        // window.location.reload(true);
       }, 2500);
     },
   });
