@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/expenditure-express/static/css/main.3d10672c.css",
-    "main.js": "/expenditure-express/static/js/main.1905242e.js",
+    "main.js": "/expenditure-express/static/js/main.3881e13d.js",
     "static/js/787.af86ab2c.chunk.js": "/expenditure-express/static/js/787.af86ab2c.chunk.js",
     "index.html": "/expenditure-express/index.html",
     "main.3d10672c.css.map": "/expenditure-express/static/css/main.3d10672c.css.map",
-    "main.1905242e.js.map": "/expenditure-express/static/js/main.1905242e.js.map",
+    "main.3881e13d.js.map": "/expenditure-express/static/js/main.3881e13d.js.map",
     "787.af86ab2c.chunk.js.map": "/expenditure-express/static/js/787.af86ab2c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.3d10672c.css",
-    "static/js/main.1905242e.js"
+    "static/js/main.3881e13d.js"
   ]
 }
