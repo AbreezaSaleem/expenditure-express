@@ -7,4 +7,5 @@ export { SampleFile } from './sample-file';
 export { Popup } from './popup';
 export { Table } from './table';
 export { Chart } from './d3-chart';
+export { GoogleLogin } from './google-login';
 export { ExpendituresList } from './collapsible-list';

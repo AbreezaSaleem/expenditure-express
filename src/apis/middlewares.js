@@ -11,7 +11,7 @@ axios.interceptors.response.use(function (response) {
     return response;
   }, function (error) {
     if (error.response.status === 401) {
-      localStorage.removeItem('credential');
+      localStorage.removeItem('eeEmail');
       toast(error.response.data.message, { type: 'error' });
     }
     return Promise.reject(error);

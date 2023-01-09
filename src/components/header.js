@@ -1,29 +1,29 @@
 import React from 'react';
-import { GoogleLogin } from '@react-oauth/google';
 import { Header as GrommetHeader, Anchor, Box, Menu, ResponsiveContext } from 'grommet';
 import { Menu as MenuIcon } from 'grommet-icons';
-import { parseJwt } from '../utils/index';
+import { toast } from 'react-toastify';
+import { GoogleLogin } from './google-login';
+import { useMutation } from 'react-query';
+import { logout } from '../apis/expenditures';
 
 const { Consumer } = ResponsiveContext;
 
 export const Header = () => {
-  const token = localStorage.getItem('credential');
-  const exp = parseJwt(token);
+  const email = localStorage.getItem('eeEmail');
+  const name = localStorage.getItem('eeName');
 
-  const onSuccess = async credentialResponse => {
-    alert('User logged in successfully');
-    const { credential } = credentialResponse;
-    localStorage.setItem('credential', credential);
-    window.location.reload(true);
-  };
-
-  const onError = error => {  console.log(error); };
-
-  const handleLogout = () => {
-    localStorage.removeItem('credential');
-    alert('User logged out successfully');
-    window.location.reload(true);
-  };
+  const logoutMutation = useMutation(logout, {
+    onSuccess: () => {
+      toast('Logged out successfully', {
+        type: 'success',
+        autoClose: 2000,
+      });
+      setTimeout(function () {
+        localStorage.removeItem('eeEmail');
+        window.location.reload(true);
+      }, 2500);
+    },
+  });
 
   const renderNaviagtion = (size) => {
     if (size === 'small') {
@@ -38,9 +38,9 @@ export const Header = () => {
                 label: <Box pad="small">View Expenditures</Box>,
                 href: '#expenditures',
               },
-              (!!token ? {
+              (!!email ? {
                 label: <Box pad="small">Logout</Box>,
-                onClick: handleLogout,
+                onClick: logoutMutation.mutate,
               } : {}),
             ]}
           />
@@ -48,16 +48,20 @@ export const Header = () => {
       );
     } else {
       return (
-        <Box justify="end" direction="row" alignItems="center" gap="medium">
+        <>
+        {email && (
+          <Box justify="end" direction="row" alignItems="center" gap="medium">
           <Anchor alignSelf="center" color="neutral-1" href="#expenditures" label="View Expenditures" />
-          {!!token && <Menu
-            label={`Hey, ${exp.given_name}`}
+          <Menu
+            label={`Hey ${name}`}
             alignItems="center"
             items={[
-              { label: 'Logout', onClick: handleLogout },
+              { label: 'Logout', onClick: logoutMutation.mutate },
             ]}
-          />}
-        </Box>
+          />
+          </Box>
+        )}
+        </>
       );
     }
   };
@@ -68,10 +72,7 @@ export const Header = () => {
       background="#00873d2b"
       pad="small"
     >
-      <GoogleLogin
-        onSuccess={ onSuccess }
-        onError={ onError }
-      />
+      {!email ? <GoogleLogin /> : <div />}
       <Consumer>
         {(size) => renderNaviagtion(size)}
       </Consumer>

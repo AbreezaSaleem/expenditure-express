@@ -48,7 +48,7 @@ const getData = (expenditure) => {
 
 export const Analytics = () => {
   const queryClient = useQueryClient()
-  const files = queryClient.getQueryData('expendituresFiles')
+  const files = queryClient.getQueryData('expendituresFiles');
   const [open, setOpen] = useState(false);
   const [showChart, setShowChart] = useState(false);
   const graphZoomedRef = useRef(false);

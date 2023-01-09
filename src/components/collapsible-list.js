@@ -78,7 +78,7 @@ export const ExpendituresList = ({ data }) => {
 
   return (
     <>
-      <Box justify="between" direction="row" fill pad="none">
+      <Box id="expenditures" justify="between" direction="row" fill pad="none">
         <Heading level={3}>Expenditures List</Heading>
         <Analytics />
       </Box>
