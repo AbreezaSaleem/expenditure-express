@@ -16,13 +16,13 @@ export const Header = () => {
     onSuccess: () => {
       toast('Logged out successfully', {
         type: 'success',
-        autoClose: 2000,
+        autoClose: 1000,
       });
       setTimeout(function () {
         localStorage.removeItem('eeEmail');
         localStorage.removeItem('eeName');
         window.location.reload(true);
-      }, 2500);
+      }, 1500);
     },
   });
 
