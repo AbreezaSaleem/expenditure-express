@@ -441,7 +441,7 @@ export const Analytics = () => {
   // for zooming functionality initially refered to this code https://stackoverflow.com/a/49286715/6051241
   const zoomChart = (svg, margin, x, xSubgroup, xDateAxis, xDateAxisReference, y, width, height, color) => {
     const extent = [[margin.left, margin.top], [width - margin.right, height - margin.top]];
-
+    console.log('extent', svg);
     const zoomScale = x.domain().length * 1.2;
 
     const zoom = d3.zoom()
