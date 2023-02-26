@@ -14,11 +14,18 @@ const generateColumns = (columns) =>
     };
   });
 
+const getColumnNames = (data) => {
+  const defaultColumns = ['Expense Description', 'Expenditure', 'Category', 'Mode of Payment'];
+  const columnsNames = Object.keys(data[0]).filter((column) => column !== 'id');
+  return columnsNames.length ? columnsNames : defaultColumns;
+};
+
 export const Table = ({ data, month, year }) => {
   const expenditureGrouped = data;
   // Data is grouped. We need to ungroup it to be able to display it in a table
   const expenditure = Object.values(expenditureGrouped).flat();
-  const columnsNames = Object.keys(expenditure[0]).filter((column) => column !== 'id');
+  const columnsNames = getColumnNames(expenditure);
+
   const columns = generateColumns(columnsNames);
 
   const [checked, setChecked] = useState([]);

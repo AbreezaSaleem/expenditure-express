@@ -7,6 +7,7 @@ const currency_regex = /^\$?\-?([1-9]{1}[0-9]{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1
 export const EditForm = ({ data, updateData, open, onClose, updateFile, edit = true }) => {
   const heading = edit ? 'Edit Field' : 'Add Field';
   const description = edit ? 'Edit the field and click save' : 'Add a new field and click save';
+  const btnText = edit ? 'Update' : 'Add';
 
   return (
     <>
@@ -47,7 +48,7 @@ export const EditForm = ({ data, updateData, open, onClose, updateFile, edit = t
         <Box direction="row" justify="between" margin={{ top: 'medium' }}>
           <Button
             type="submit"
-            label={<Text color="white" weight="bold">Update</Text>}
+            label={<Text color="white" weight="bold">{btnText}</Text>}
             disabled={Object.values(data).some((value) => value === '')}
             color="status-warning"
             onClick={updateFile}
